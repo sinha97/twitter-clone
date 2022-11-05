@@ -11,13 +11,13 @@ function loadPosts() {
     "/api/posts",
     { postedBy: profileUserId, isReply: false },
     (results) => {
-      outpustPosts(results, $(".postContainer"));
+      outputPosts(results, $(".postContainer"));
     }
   );
 }
 
 function loadReplies() {
   $.get("/api/posts", { postedBy: profileUserId, isReply: true }, (results) => {
-    outpustPosts(results, $(".postContainer"));
+    outputPosts(results, $(".postContainer"));
   });
 }

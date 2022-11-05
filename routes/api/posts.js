@@ -10,9 +10,26 @@ app.use(bodyParser.urlencoded({ extended: false }));
 router.get("/", async (req, res, next) => {
   var searchObj = req.query;
   if (searchObj.isReply !== undefined) {
-    var isReply = searchObj.isReply == 'true';
+    var isReply = searchObj.isReply == "true";
     searchObj.replyTo = { $exists: isReply };
     delete searchObj.isReply;
+  }
+
+  if (searchObj.followingOnly !== undefined) {
+    var followingOnly = searchObj.followingOnly == "true";
+    if (followingOnly) {
+      var objectIds = [];
+      if (!req.session.user.following) {
+        req.session.user.following = [];
+      }
+      req.session.user.following.forEach((user) => {
+        objectIds.push(user);
+      });
+
+      objectIds.push(req.session.user._id);
+      searchObj.postedBy = { $in: objectIds };
+    }
+    delete searchObj.followingOnly;
   }
   var results = await getPosts(searchObj);
   res.status(200).send(results);

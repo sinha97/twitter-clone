@@ -50,7 +50,7 @@ $("#replyModal").on("show.bs.modal", (event) => {
   $("#submitReplyButton").data("id", postId);
 
   $.get("/api/posts/" + postId, (results) => {
-    outpustPosts(results.postData, $("#originalPostContainer"));
+    outputPosts(results.postData, $("#originalPostContainer"));
   });
 });
 
@@ -71,7 +71,6 @@ $("#deletePostButton").click((event) => {
     url: `/api/posts/${postId}`,
     type: "DELETE",
     success: () => {
-
       if (xhr.status != 202) {
         alert("could not delete post");
         return;
@@ -79,8 +78,7 @@ $("#deletePostButton").click((event) => {
       location.reload();
     },
   });
-})
-
+});
 
 $(document).on("click", ".likeButton", (event) => {
   var button = $(event.target);
@@ -128,10 +126,41 @@ $(document).on("click", ".post", (event) => {
   var element = $(event.target);
   var postId = getPostIdFromElement(element);
 
-  if (postId !== undefined && !element.is('button')) {
-    window.location.href = '/posts/' + postId;
+  if (postId !== undefined && !element.is("button")) {
+    window.location.href = "/posts/" + postId;
   }
-})
+});
+
+$(document).on("click", ".followButton", (event) => {
+  var button = $(event.target);
+  var userId = button.data().user;
+
+  $.ajax({
+    url: `/api/users/${userId}/follow`,
+    type: "PUT",
+    success: (data, status, xhr) => {
+      if (xhr.status == 404) {
+        return;
+      }
+
+      var difference = 1;
+      if (data.following && data.following.includes(userId)) {
+        button.addClass("following");
+        button.text("Following");
+      } else {
+        button.removeClass("following");
+        button.text("Follow");
+        difference = -1;
+      }
+
+      var followersLabel = $("#followersValue");
+      if (followersLabel.length != 0) {
+        var followesText = parseInt(followersLabel.text());
+        followersLabel.text(followesText + difference);
+      }
+    },
+  });
+});
 
 function getPostIdFromElement(element) {
   var isRoot = element.hasClass("post");
@@ -143,7 +172,7 @@ function getPostIdFromElement(element) {
   return postId;
 }
 
-function createPostHtml(postData,largeFont=false) {
+function createPostHtml(postData, largeFont = false) {
   if (postData == null) return alert("post object in null");
 
   var isRetweet = postData.retweetData !== undefined;
@@ -167,7 +196,7 @@ function createPostHtml(postData,largeFont=false) {
   )
     ? "active"
     : "";
-  var largeFontClass = largeFont ? "largeFont" : '';
+  var largeFontClass = largeFont ? "largeFont" : "";
 
   var retweetText = "";
   if (isRetweet) {
@@ -193,7 +222,7 @@ function createPostHtml(postData,largeFont=false) {
 
   var buttons = "";
   if (postData.postedBy._id == userLoggedIn._id) {
-    buttons=`<button data-id="${postData._id}" data-toggle="modal" data-target="#deletePostModal"><i class='fas fa-times'></i></button>`
+    buttons = `<button data-id="${postData._id}" data-toggle="modal" data-target="#deletePostModal"><i class='fas fa-times'></i></button>`;
   }
 
   return `<div class='post ${largeFontClass}' data-id='${postData._id}'>
@@ -268,7 +297,7 @@ function timeDifference(current, previous) {
   }
 }
 
-function outpustPosts(results, container) {
+function outputPosts(results, container) {
   container.html("");
 
   if (!Array.isArray(results)) {
@@ -285,21 +314,19 @@ function outpustPosts(results, container) {
   }
 }
 
-function outpustPostsWithReplies(results, container) {
+function outputPostsWithReplies(results, container) {
   container.html("");
 
   if (results.replyTo !== undefined && results.replyTo._id !== undefined) {
-    var html = createPostHtml(results.replyTo)
+    var html = createPostHtml(results.replyTo);
     container.append(html);
   }
 
-  var mainPostHtml = createPostHtml(results.postData,true)
-    container.append(mainPostHtml);
+  var mainPostHtml = createPostHtml(results.postData, true);
+  container.append(mainPostHtml);
 
   results.replies.forEach((result) => {
     var html = createPostHtml(result);
     container.append(html);
   });
-
 }
-

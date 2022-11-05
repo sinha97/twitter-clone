@@ -29,6 +29,7 @@ const profileRoutes = require('./routes/profileRoutes')
 
 // Api routes
 const postsApiRoute = require("./routes/api/posts");
+const usersApiRoute = require("./routes/api/users");
 
 app.use("/login", loginRoutes);
 app.use("/register", registerRoute);
@@ -36,8 +37,8 @@ app.use("/logout", logoutRoutes);
 app.use("/posts",middleware.requireLogin, postRoutes);
 app.use("/profile",middleware.requireLogin, profileRoutes);
 
-
 app.use("/api/posts", postsApiRoute);
+app.use("/api/users", usersApiRoute);
 
 
 app.get("/", middleware.requireLogin, (req, res, next) => {
@@ -45,7 +46,6 @@ app.get("/", middleware.requireLogin, (req, res, next) => {
     pageTitle: "Home",
     userLoggedIn: req.session.user,
     userLoggedInJs:JSON.stringify(req.session.user)
-    
   };
 
   res.status(200).render("home", payload);
