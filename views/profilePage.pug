@@ -12,7 +12,15 @@ block content
         - followingCount = profileUser.following.length;
 
         .profileHeaderContainer
-            .coverPhotoContainer
+            .coverPhotoSection
+                .coverPhotoContainer
+
+                    if profilePhotoContainer
+                        img(src=profileUser.coverPhoto,alt="User's cover photo")
+
+                    if profileUser._id == userLoggedIn._id
+                        button.coverPhotoButton(data-toggle="modal",data-target="#coverPhotoModal")
+                            i.fas.fa-camera
                 
                 .userImageContainer
                     img(src=profileUser.profilePic, alt="User profile image")
@@ -20,6 +28,7 @@ block content
                     if profileUser._id == userLoggedIn._id
                         button.profilePictureButton(data-toggle="modal",data-target="#imageUploadModal")
                             i.fas.fa-camera
+
             .profileButtonsContainer
                 if profileUser._id != userLoggedIn._id
                     a.profileButton(herf=`/messages/${profileUser._id}`)
@@ -52,5 +61,6 @@ block content
 
         +createPostModal(userLoggedIn)
         +createImageUploadModal()
+        +createCoverPhotoUploadModal()
 block script
     script(src="/js/profile.js") 
