@@ -20,7 +20,10 @@ router.post("/", async (req, res, next) => {
 
   if (req.body.logUsername && req.body.logPassword) {
     var user = await User.findOne({
-      $or: [{ username: req.body.logUsername }, { email: req.body.logUsername }],
+      $or: [
+        { username: req.body.logUsername },
+        { email: req.body.logUsername },
+      ],
     }).catch((err) => {
       payload.errorMessage = "Something went wrong.";
       res.status(200).render("login", payload);
