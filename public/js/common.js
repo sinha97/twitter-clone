@@ -1,5 +1,7 @@
 //Global
 var cropper;
+var timer;
+var selectedUsers = [];
 
 $("#postTextarea,#replyTextarea").keyup((event) => {
   var textbox = $(event.target);
@@ -101,8 +103,8 @@ $("#pinPostButton").click((event) => {
   $.ajax({
     url: `/api/posts/${postId}`,
     type: "PUT",
-    data:{pinned:true},
-    success: (data,status,xhr) => {
+    data: { pinned: true },
+    success: (data, status, xhr) => {
       if (xhr.status != 204) {
         alert("could not pinned post");
         return;
@@ -118,8 +120,8 @@ $("#unpinPostButton").click((event) => {
   $.ajax({
     url: `/api/posts/${postId}`,
     type: "PUT",
-    data:{pinned:false},
-    success: (data,status,xhr) => {
+    data: { pinned: false },
+    success: (data, status, xhr) => {
       if (xhr.status != 204) {
         alert("could not pinned post");
         return;
@@ -212,6 +214,45 @@ $("#coverPhotoButton").click(() => {
       contentType: false,
       success: () => location.reload(),
     });
+  });
+});
+
+$("#userSearchTextbox").keydown((event) => {
+  clearTimeout(timer);
+  var textbox = $(event.target);
+  var value = textbox.val();
+
+  if (value == "" && (event.which == 8 || event.keyCode == 8)) {
+    // remove user from selection
+    selectedUsers.pop();
+    updateSelectedUsershtml();
+    $(".resultsContainer").html("");
+
+    if (selectedUsers.length == 0) {
+      $("#createChatButton").prop("disabled", true);
+    }
+
+    return;
+  }
+
+  timer = setTimeout(() => {
+    value = textbox.val().trim();
+
+    if ((value = "")) {
+      $(".resultsContainer").html("");
+    } else {
+      searchUsers(value);
+    }
+  }, 1000);
+});
+
+$("#createChatButton").click(() => {
+  var data = JSON.stringify(selectedUsers);
+
+  $.post("/api/chats", { users: data }, (chat) => {
+    if (!chat || !chat._id) return alert("Invalid response from server.");
+
+    window.location.href = `/messages/${chat._id}`;
   });
 });
 
@@ -358,13 +399,13 @@ function createPostHtml(postData, largeFont = false) {
   var buttons = "";
   var pinnedPostText = "";
   if (postData.postedBy._id == userLoggedIn._id) {
-
-    var pinnedClass = '';
+    var pinnedClass = "";
     var dataTarget = "#confirmPinModal";
     if (postData.pinned === true) {
       pinnedClass = "active";
-      dataTarget="#unpinModal"
-      pinnedPostText="<i class='fas fa-thumbtack'></i> <span>Pinned post</span>"
+      dataTarget = "#unpinModal";
+      pinnedPostText =
+        "<i class='fas fa-thumbtack'></i> <span>Pinned post</span>";
     }
     buttons = `<button class='pinButton ${pinnedClass}' data-id="${postData._id}" data-toggle="modal" data-target="${dataTarget}"><i class='fas fa-thumbtack'></i></button>
                 <button data-id="${postData._id}" data-toggle="modal" data-target="#deletePostModal"><i class='fas fa-times'></i></button>`;
@@ -515,4 +556,50 @@ function createUserHtml(userData, showFollowButton) {
         </div>
         ${followButton}
     </div>`;
+}
+
+function searchUsers(searchTerm) {
+  $.get("/api/users", { search: searchTerm }, (results) => {
+    outputSelectableUsers(results, $(".resultsContainer"));
+  });
+}
+
+function outputSelectableUsers(results, container) {
+  container.html("");
+  results.forEach((result) => {
+    if (
+      result._id == userLoggedIn._id ||
+      selectedUsers.some((u) => u._id == result._id)
+    ) {
+      return;
+    }
+    var html = createUserHtml(result, false);
+    var element = $(html);
+    element.click(() => userSelected(result));
+
+    container.append(element);
+  });
+
+  if (results.length == 0) {
+    container.append("<span class='noResults'>No results found</span>");
+  }
+}
+
+function userSelected(user) {
+  selectedUsers.push(user);
+  updateSelectedUsershtml();
+  $("#userSearchTextbox").val("").focus();
+  $(".resultsContainer").html("");
+  $("#createChatButton").prop("disabled", false);
+}
+
+function updateSelectedUsershtml() {
+  var elements = [];
+  selectedUsers.forEach((user) => {
+    var name = user.firstName + " " + user.lastName;
+    var userElement = $(`<span class='selectedUser'>${name}</span>`);
+    elements.push(userElement);
+  });
+  $(".selectedUser").remove();
+  $("#selectedUsers").prepend(elements);
 }
