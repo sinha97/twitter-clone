@@ -22,16 +22,17 @@ router.get("/:chatId", async (req, res, next) => {
   var chatId = req.params.chatId;
   var isValidId = mongoose.isValidObjectId(chatId);
 
+
+  var payload = {
+    pageTitle: "Chat",
+    userLoggedIn: req.session.user,
+    userLoggedInJs: JSON.stringify(req.session.user),
+  };
+
   if (!isValidId) {
     payload.errorMessage ="Chat does not exist or you do not have permission to view it.";
     return res.status(200).render("chatPage", payload);
   }
-
-  var payload = {
-    pageTitle: "Chat",
-    userLoggedIn: req.session._id,
-    userLoggedInJs: JSON.stringify(req.session.user),
-  };
 
   var chat = await Chat.findOne({
     _id: chatId,
