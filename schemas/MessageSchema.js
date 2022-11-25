@@ -6,7 +6,7 @@ const messageSchema = new Schema({
     content: { type: String, trim: true },
     chat: { type: Schema.Types.ObjectId, ref: "Chat" },
     readBy: [{ type: Schema.Types.ObjectId, ref: "User" }]
-}, { timestamps: true });
+}, { timestamps: true});
 
 
 module.exports = mongoose.model('Message', messageSchema);
