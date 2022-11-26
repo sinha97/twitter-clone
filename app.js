@@ -34,7 +34,7 @@ const profileRoutes = require('./routes/profileRoutes')
 const uploadRoutes = require('./routes/uploadRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const mesageRoutes = require('./routes/messagesRoutes');
-
+const notificationsRoutes = require('./routes/notificationRoutes');
 
 
 // Api routes
@@ -51,7 +51,7 @@ app.use("/profile", middleware.requireLogin, profileRoutes);
 app.use("/uploads", uploadRoutes);
 app.use("/search", middleware.requireLogin, searchRoutes);
 app.use("/messages",middleware.requireLogin, mesageRoutes);
-
+app.use("/notifications",middleware.requireLogin, notificationsRoutes);
 
 
 app.use("/api/posts", postsApiRoute);
@@ -72,10 +72,8 @@ app.get("/", middleware.requireLogin, (req, res, next) => {
 
 // socket implemententation
 io.on("connection", (socket) => {
-  console.log("Connected to socket.");
 
   socket.on("setup", userData => {
-    // console.log(userData.firstName)
     socket.join(userData._id);
     socket.emit("connected");
   });
