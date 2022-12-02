@@ -338,6 +338,18 @@ $(document).on("click", ".followButton", (event) => {
   });
 });
 
+$(document).on("click", ".notification.active", (e) => {
+  var container = $(e.target);
+  var notificationId = container.data().id;
+
+  var href = container.attr("href");
+  e.preventDefault();
+ 
+  var callback = () => (window.location = href);
+  console.log('notificationId',notificationId,'callback',callback)
+  // markNotificationsAsOpened(notificationId, callback);
+});
+
 function getPostIdFromElement(element) {
   var isRoot = element.hasClass("post");
   var rootElement = isRoot ? element : element.closest(".post");
@@ -608,8 +620,10 @@ function getChatName(chatData) {
   var chatName = chatData.chatName;
   if (!chatName) {
     var otherChatUsers = getOtherChatUsers(chatData.users);
-    var namesArray = otherChatUsers.map(user => user.firstName + " " + user.lastName);
-    chatName = namesArray.join(", ")
+    var namesArray = otherChatUsers.map(
+      (user) => user.firstName + " " + user.lastName
+    );
+    chatName = namesArray.join(", ");
   }
 
   return chatName;
@@ -618,7 +632,7 @@ function getChatName(chatData) {
 function getOtherChatUsers(users) {
   if (users.length == 1) return users;
 
-  return users.filter(user => user._id != userLoggedIn._id);
+  return users.filter((user) => user._id != userLoggedIn._id);
 }
 
 function messageReceived(newMessage) {
@@ -627,4 +641,18 @@ function messageReceived(newMessage) {
   } else {
     addChatMessagehtml(newMessage);
   }
+}
+
+function markNotificationsAsOpened(notificationId = null, callback = null) {
+  if (callback == null) callback = () => location.reload();
+
+  var url =
+    notificationId != null
+      ? `/api/notifications/${notificationId}/markAsOpened`
+      : `/api/notifications/markAsOpened`;
+  $.ajax({
+    url: url,
+    type: "PUT",
+    success: () => callback(),
+  });
 }
