@@ -11,10 +11,16 @@ const Notification = require("../../schemas/NotificationSchema");
 app.use(bodyParser.urlencoded({ extended: false }));
 
 router.get("/", async (req, res, next) => {
-  Notification.find({
+  var searchObj = {
     userTo: req.session.user._id,
     notificationType: { $ne: "newMessage" },
-  })
+  };
+
+   if (req.query.unreadyOnly !== undefined && req.query.unreadOnly == 'true') {
+     searchObj.opened = false;
+   }
+  
+  Notification.find(searchObj)
     .populate("userTo")
     .populate("userFrom")
     .sort({ creadtedAt: -1 })
@@ -42,4 +48,5 @@ router.put("/markAsOpened", async (req, res, next) => {
       res.sendStatus(400);
     });
 });
+
 module.exports = router;

@@ -3,6 +3,11 @@ var cropper;
 var timer;
 var selectedUsers = [];
 
+$(document).ready(() => {
+  refreshMessagesBadge()
+  refreshNotificationBadge()
+})
+
 $("#postTextarea,#replyTextarea").keyup((event) => {
   var textbox = $(event.target);
   var value = textbox.val().trim();
@@ -21,7 +26,7 @@ $("#postTextarea,#replyTextarea").keyup((event) => {
   submitButton.prop("disabled", false);
 });
 
-$("#submitPostButton ,#submitReplyButton").click(() => {
+$("#submitPostButton ,#submitReplyButton").click((event) => {
   var button = $(event.target);
 
   var isModal = button.parents(".modal").length == 1;
@@ -38,9 +43,11 @@ $("#submitPostButton ,#submitReplyButton").click(() => {
   }
 
   $.post("/api/posts", data, (postData) => {
+
     if (postData.replyTo) {
       location.reload();
-    } else {
+    }
+    else {
       var html = createPostHtml(postData);
       $(".postContainer").prepend(html);
       textbox.val("");
@@ -59,9 +66,7 @@ $("#replyModal").on("show.bs.modal", (event) => {
   });
 });
 
-$("#replyModal").on("hidden.bs.modal", () =>
-  $("#originalPostContainer").html("")
-);
+$("#replyModal").on("hidden.bs.modal", () =>refreshNotificationBadge);
 
 $("#deletePostModal").on("show.bs.modal", (event) => {
   var button = $(event.relatedTarget);
@@ -347,7 +352,7 @@ $(document).on("click", ".notification.active", (e) => {
  
   var callback = () => (window.location = href);
   console.log('notificationId',notificationId,'callback',callback)
-  // markNotificationsAsOpened(notificationId, callback);
+  markNotificationsAsOpened(notificationId, callback);
 });
 
 function getPostIdFromElement(element) {
@@ -641,6 +646,8 @@ function messageReceived(newMessage) {
   } else {
     addChatMessagehtml(newMessage);
   }
+
+  refreshMessagesBadge()
 }
 
 function markNotificationsAsOpened(notificationId = null, callback = null) {
@@ -655,4 +662,27 @@ function markNotificationsAsOpened(notificationId = null, callback = null) {
     type: "PUT",
     success: () => callback(),
   });
+}
+
+function refreshMessagesBadge() {
+  $.get("api/chats", { unreadOnly: true }, (data) => {
+    var numResults = data.length;
+    if (numResults > 0) {
+      $('#messagesBadge').text(numResults).addClass('active')
+    } else {
+      $('#messagesBadge').text('').removeClass('active')
+      
+    }
+  })
+}
+
+function refreshNotificationBadge() {
+  $.get("api/notifications", { unreadOnly: true }, (data) => {
+    var numResults = data.length;
+    if (numResults > 0) {
+      $('#notificationBadge').text(numResults).addClass('active')
+    } else {
+      $('#notificationBadge').text('').removeClass('active')
+    }
+  })
 }
