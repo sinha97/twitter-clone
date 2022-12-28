@@ -25,6 +25,7 @@ $(document).ready(() => {
     var messageHtml = messages.join("");
     addMessageHtmlToPage(messageHtml);
     scrollToBottom(false);
+    refreshMessagesBadge()
 
     $(".loadingSpinnerContainer").remove();
     $(".chatContainer").css("visibility", "visible");
@@ -112,7 +113,7 @@ function sendMessage(content) {
       addChatMessagehtml(data);
 
       if (connected) {
-        socket.emit("new message",data)
+        socket.emit("new message", data);
       }
     }
   );
@@ -181,4 +182,12 @@ function scrollToBottom(animated) {
   } else {
     container.scrollTop(scrollHeight);
   }
+}
+
+function markAllMessageAsRead() {
+  $.ajax({
+    url: `/api/chats/${chatId}/messages/markAsRead`,
+    type: "PUT",
+    success: () => refreshMessagesBadge(),
+  });
 }

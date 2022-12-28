@@ -16,11 +16,23 @@ router.get("/", async (req, res, next) => {
     notificationType: { $ne: "newMessage" },
   };
 
-   if (req.query.unreadyOnly !== undefined && req.query.unreadOnly == 'true') {
-     searchObj.opened = false;
-   }
-  
+  if (req.query.unreadyOnly !== undefined && req.query.unreadOnly == "true") {
+    searchObj.opened = false;
+  }
+
   Notification.find(searchObj)
+    .populate("userTo")
+    .populate("userFrom")
+    .sort({ creadtedAt: -1 })
+    .then((results) => res.status(200).send(results))
+    .catch((error) => {
+      console.log(error);
+      res.sendStatus(400);
+    });
+});
+
+router.get("/latest", async (req, res, next) => {
+  Notification.findOne({ userTo: req.session.user._id })
     .populate("userTo")
     .populate("userFrom")
     .sort({ creadtedAt: -1 })
